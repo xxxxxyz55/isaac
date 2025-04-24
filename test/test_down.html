@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web File Manager</title>
+    <style>
+        /* 内联 CSS 样式 */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        .file-manager {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .path-bar {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-bottom: 1px solid #ccc;
+        }
+
+        .path-bar a {
+            text-decoration: none;
+            color: #007bff;
+            margin-right: 5px;
+        }
+
+        .path-bar a:hover {
+            text-decoration: underline;
+        }
+
+        .file-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        .file-item {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            align-items: center;
+            padding: 5px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        .file-item:hover {
+            background-color: #f0f0f0;
+        }
+
+        .folder-icon {
+            margin-right: 10px;
+            color: #ff9500;
+        }
+
+        .file-icon {
+            margin-right: 10px;
+            color: #007bff;
+        }
+
+        .parent-folder-icon {
+            margin-right: 10px;
+            color: #555;
+        }
+
+        .file-name {
+            display: flex;
+            align-items: center;
+        }
+
+        .file-type,
+        .file-modified,
+        .file-size {
+            text-align: right;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="file-manager">
+        <!-- 显示当前路径 -->
+        <div class="path-bar" id="path-bar">
+            <!-- 动态生成的路径 -->
+        </div>
+
+        <!-- 文件和目录列表 -->
+        <div class="file-list" id="file-list">
+            <!-- 动态生成的文件和目录列表 -->
+        </div>
+    </div>
+
+    <script>
+        // 内联 JavaScript 逻辑
+
+        // 当前路径
+        let currentPath = '/';
+
+        // 预置的文件系统数据，包含文件类型、修改时间和大小
+        const itermsData =
+            [
+                { name: 'folder1', isFolder: true, modified: '2023-10-01', size: '-' },
+                { name: 'folder2', isFolder: true, modified: '2023-10-02', size: '-' },
+                { name: 'file1.txt', isFolder: false, modified: '2023-10-03', size: '1.2 KB' }
+            ];
+
+        // 初始化页面
+        document.addEventListener('DOMContentLoaded', () => {
+            loadDirectory(currentPath);
+        });
+
+        // 加载目录内容
+        function loadDirectory(path) {
+            const fileList = document.getElementById('file-list');
+            fileList.innerHTML = ''; // 清空现有内容
+
+            // 更新路径显示
+            updatePathBar(path);
+
+            // 如果不是根目录，则添加 ".." 上一级目录
+            if (path !== '/') {
+                const parentItem = document.createElement('div');
+                parentItem.classList.add('file-item');
+                parentItem.innerHTML = `
+                    <div class="file-name"><span class="parent-folder-icon">⬆️</span>..</div>
+                    <div class="file-type">-</div>
+                    <div class="file-modified">-</div>
+                    <div class="file-size">-</div>
+                `;
+                parentItem.addEventListener('click', () => {
+                    // 返回上一级目录
+                    const newPath = path.split('/').slice(0, -1).join('/') || '/';
+                    currentPath = newPath;
+                    window.location.href = currentPath;
+                });
+                fileList.appendChild(parentItem);
+            }
+
+            // 获取当前路径下的文件和目录
+            const items = itermsData;
+
+            items.forEach(item => {
+                const iconClass = item.isFolder ? 'folder-icon' : 'file-icon';
+                const icon = item.isFolder ? '📁' : '📄';
+
+                const itemElement = document.createElement('div');
+                itemElement.classList.add('file-item');
+                itemElement.innerHTML = `
+                    <div class="file-name"><span class="${iconClass}">${icon}</span>${item.name}</div>
+                    <div class="file-type">${item.isFolder ? 'Folder' : 'File'}</div>
+                    <div class="file-modified">${item.modified}</div>
+                    <div class="file-size">${item.size}</div>
+                `;
+
+                // 点击事件
+                itemElement.addEventListener('click', () => {
+                    if (item.isFolder) {
+                        currentPath = `${path}/${item.name}`.replace('//', '/');
+                        window.location.href = currentPath;
+                    } else {
+                        alert(`Opening file: ${item.name}`);
+                    }
+                });
+
+                fileList.appendChild(itemElement);
+            });
+        }
+
+        // 更新路径栏
+        function updatePathBar(path) {
+            const pathBar = document.getElementById('path-bar');
+            pathBar.innerHTML = ''; // 清空现有路径
+
+            // 将路径分割成各个部分
+            const pathParts = path.split('/').filter(part => part.length > 0);
+
+            // 添加根目录链接
+            const rootLink = document.createElement('a');
+            rootLink.href = '#';
+            rootLink.textContent = '/';
+            rootLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                window.location.href = '/';
+            });
+            pathBar.appendChild(rootLink);
+
+            // 动态生成路径链接
+            let currentFullPath = '';
+            pathParts.forEach((part, index) => {
+                currentFullPath += `/${part}`;
+                const separator = document.createTextNode(' / ');
+                const link = document.createElement('a');
+                link.href = '#';
+                link.textContent = part;
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    currentPath = currentFullPath;
+                    window.location.href = currentPath;
+                });
+                pathBar.appendChild(separator);
+                pathBar.appendChild(link);
+            });
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>upload</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 50px;
+            text-align: center;
+        }
+        .upload-container {
+            display: inline-block;
+            padding: 20px;
+            border: 2px dashed #ccc;
+            border-radius: 10px;
+            background-color: #f9f9f9;
+            cursor: pointer;
+        }
+        .upload-container:hover {
+            border-color: #aaa;
+        }
+        .hidden-input {
+            display: none;
+        }
+        .file-info {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #555;
+        }
+        .upload-status {
+            margin-top: 20px;
+            font-size: 16px;
+            color: green;
+        }
+        .error-message {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <h1>带参数的文件上传示例</h1>
+    <div class="upload-container" onclick="document.getElementById('fileInput').click();">
+        <p>点击此处选择文件</p>
+        <input type="file" id="fileInput" class="hidden-input" onchange="handleFileSelect(event)">
+    </div>
+    <div class="file-info" id="fileInfo">
+        <!-- 文件信息将显示在这里 -->
+    </div>
+    <div class="upload-status" id="uploadStatus"></div>
+
+    <script>
+        // 处理文件选择事件
+        function handleFileSelect(event) {
+            const fileInput = event.target;
+            const fileInfoDiv = document.getElementById('fileInfo');
+            const uploadStatusDiv = document.getElementById('uploadStatus');
+
+            if (fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                fileInfoDiv.innerHTML = `
+                    <p><strong>文件名:</strong> ${file.name}</p>
+                    <p><strong>文件类型:</strong> ${file.type}</p>
+                    <p><strong>文件大小:</strong> ${(file.size / 1024).toFixed(2)} KB</p>
+                `;
+                uploadStatusDiv.innerHTML = ''; // 清空上传状态
+            } else {
+                fileInfoDiv.innerHTML = '<p>未选择文件。</p>';
+            }
+        }
+
+        // 调用后台上传接口
+        async function uploadFile() {
+            const fileInput = document.getElementById('fileInput');
+            const uploadStatusDiv = document.getElementById('uploadStatus');
+
+            if (!fileInput.files.length) {
+                uploadStatusDiv.innerHTML = '<p class="error-message">请先选择文件！</p>';
+                return;
+            }
+
+            const file = fileInput.files[0];
+            const formData = new FormData();
+
+            // 添加文件到 FormData
+            formData.append('file', file);
+
+            // 添加额外参数
+            formData.append('fileName', file.name); // 文件名
+            formData.append('savePath', '/uploads/custom-folder'); // 自定义保存路径
+
+            try {
+                uploadStatusDiv.innerHTML = '<p>正在上传文件...</p>';
+
+                // 使用 fetch 调用后台接口
+                const response = await fetch('http://192.168.1.88/v1/api/upload', { // 替换为你的后台接口地址
+                    method: 'POST',
+                    body: formData,
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    uploadStatusDiv.innerHTML = `<p>文件上传成功！服务器返回：${JSON.stringify(result)}</p>`;
+                } else {
+                    uploadStatusDiv.innerHTML = `<p class="error-message">文件上传失败！状态码：${response.status}</p>`;
+                }
+            } catch (error) {
+                uploadStatusDiv.innerHTML = `<p class="error-message">文件上传出错：${error.message}</p>`;
+            }
+        }
+
+        // 添加一个按钮来触发上传
+        document.write('<button onclick="uploadFile()">上传文件</button>');
+    </script>
+</body>
+</html>

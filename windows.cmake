@@ -1,0 +1,42 @@
+
+if(MSVC)
+add_compile_options(/GS- /MD /utf-8)
+endif()
+
+add_definitions(-DWIN32_LEAN_AND_MEAN)
+# add_compile_options(/wd4819)
+if(YS_SUPPORT_SSL)
+find_library(gm_crypto libcrypto.lib extern_lib NO_DEFAULT_PATH)
+find_library(gm_ssl libssl.lib extern_lib NO_DEFAULT_PATH)
+endif()
+
+# add_executable(isaacTest ${isaac_test_file})
+# link_directories(extern_lib)
+# target_include_directories(isaacTest PUBLIC isaac)
+# target_include_directories(isaacTest PUBLIC 3rdparty)
+# target_link_libraries(isaacTest ws2_32)
+# if(YS_SUPPORT_SSL)
+# target_link_libraries(isaacTest ${gm_ssl} ${gm_crypto}  Crypt32)
+# endif()
+
+# add_executable(cbhttpclient test/callback_httpclient.cpp)
+# target_include_directories(cbhttpclient PUBLIC isaac)
+# target_include_directories(cbhttpclient PUBLIC 3rdparty)
+# target_link_libraries(cbhttpclient ws2_32)
+# target_link_libraries(cbhttpclient ${gm_ssl} ${gm_crypto} Crypt32)
+
+add_executable(islam test/islam.cpp)
+target_include_directories(islam PUBLIC isaac)
+target_include_directories(islam PUBLIC 3rdparty)
+target_link_libraries(islam ws2_32)
+target_link_libraries(islam ${gm_ssl} ${gm_crypto}  Crypt32)
+
+add_executable(md5 test/md5.cpp)
+target_include_directories(md5 PUBLIC isaac)
+target_link_libraries(md5 ws2_32)
+
+add_executable(utest test/utest.cpp)
+target_include_directories(utest PUBLIC isaac)
+target_include_directories(utest PUBLIC 3rdparty)
+target_link_libraries(utest ws2_32)
+target_link_libraries(utest ${gm_ssl} ${gm_crypto} Crypt32)
